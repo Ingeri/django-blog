@@ -17,6 +17,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from blogApp import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.home, name='home'),
+    path('contact/', views.contact, name='contact'),
+    path('login/', views.sign_in, name='login'),
+    path('logout/', views.sign_out, name='logout'),
+    path('register/', views.sign_up, name='register'),
+    path('notifications/', views.notifications, name='notifications'),
+    path('posts/<slug:slug>/', views.post_detail, name='post_detail'),
+    path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
+    path('posts/<slug:slug>/like/', views.toggle_like, name='toggle_like'),
+    path('editors/<int:user_id>/follow/', views.toggle_follow, name='toggle_follow'),
+    path('editor/', views.editor_dashboard, name='editor_dashboard'),
+    path('editor/posts/new/', views.edit_post, name='new_post'),
+    path('editor/posts/<int:post_id>/edit/', views.edit_post, name='edit_post'),
+    path('editor/comments/<int:comment_id>/visibility/', views.moderate_editor_comment, name='moderate_editor_comment'),
+    path('manage/', views.management_dashboard, name='manage'),
 ]

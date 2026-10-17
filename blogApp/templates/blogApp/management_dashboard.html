@@ -1,0 +1,430 @@
+{% extends 'blogApp/base.html' %} {% block title %}Manage Fieldnotes —
+Fieldnotes{% endblock %} {% block content %}
+<section class="dashboard-page admin-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Fieldnotes administration</p>
+      <h1>Manage the publication</h1>
+    </div>
+    <span class="admin-badge">Administrator</span>
+  </div>
+  <nav class="admin-tabs" aria-label="Management sections">
+    {% for key,label in section_choices %}<a
+      class="{% if section == key %}active{% endif %}"
+      href="?section={{ key }}"
+      >{{ label }}</a
+    >{% endfor %}
+  </nav>
+  {% if section == 'overview' %}
+  <div class="stat-row">
+    <div class="stat-block">
+      <span>Community members</span><strong>{{ stats.users }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Editors</span><strong>{{ stats.editors }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Stories</span><strong>{{ stats.posts }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Responses</span><strong>{{ stats.comments }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Open messages</span><strong>{{ stats.unresolved }}</strong>
+    </div>
+  </div>
+  <div class="admin-overview-grid">
+    <section class="dashboard-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">The latest</p>
+          <h2>Recent stories</h2>
+        </div>
+        <a class="text-link" href="?section=posts">All stories ↗</a>
+      </div>
+      <div class="compact-list">
+        {% for post in recent_posts %}
+        <article>
+          <div>
+            <a class="table-title" href="{% url 'post_detail' post.slug %}"
+              >{{ post.title }}</a
+            ><small
+              >By {{ post.author.username|default:'Former editor' }} · {{
+              post.created_at|date:'M j' }}</small
+            >
+          </div>
+          <span class="status-pill status-{{ post.status }}"
+            >{{ post.get_status_display }}</span
+          >
+        </article>
+        {% empty %}
+        <p class="subtle">No stories yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="dashboard-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Needs a reply</p>
+          <h2>Open messages</h2>
+        </div>
+        <a class="text-link" href="?section=inbox">Inbox ↗</a>
+      </div>
+      <div class="compact-list">
+        {% for item in recent_messages %}
+        <article>
+          <div>
+            <strong>{{ item.subject }}</strong
+            ><small
+              >{{ item.sender_name }} · {{ item.submitted_at|date:'M j'
+              }}</small
+            >
+          </div>
+        </article>
+        {% empty %}
+        <p class="subtle">Inbox is clear.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+  <section class="dashboard-section">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">Security record</p>
+        <h2>Recent sign-ins</h2>
+      </div>
+      <a class="text-link" href="?section=logins">All activity ↗</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>When</th>
+            <th>Network address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_logins %}
+          <tr>
+            <td>{{ item.user.username }}</td>
+            <td>{{ item.login_time|date:'M j, Y · g:i a' }}</td>
+            <td>{{ item.ip_address|default:'—' }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td class="table-empty" colspan="3">No sign-ins recorded.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% elif section == 'users' %}
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">Access and roles</p>
+      <h2>People</h2>
+    </div>
+    <span class="feed-count">{{ stats.users }} accounts</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Joined</th>
+          <th>Current role</th>
+          <th>Access</th>
+          <th>Update role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            <strong>{{ item.username }}</strong><small>{{ item.email }}</small>
+          </td>
+          <td>{{ item.date_joined|date:'M j, Y'|default:'—' }}</td>
+          <td>{{ item.get_role_display }}</td>
+          <td>
+            <span
+              class="status-pill {% if item.is_active %}status-published{% else %}status-hidden{% endif %}"
+              >{% if item.is_active %}Active{% else %}Suspended{% endif %}</span
+            >
+          </td>
+          <td>
+            {% if item.id != user.id %}
+            <div class="table-actions">
+              <form method="post">
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="action"
+                  value="toggle_active"
+                /><input
+                  type="hidden"
+                  name="item_id"
+                  value="{{ item.id }}"
+                /><button class="button button-outline" type="submit">
+                  {% if item.is_active %}Suspend{% else %}Restore{% endif %}
+                </button>
+              </form>
+              <form method="post" class="inline-role-form">
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="action"
+                  value="set_role"
+                /><input
+                  type="hidden"
+                  name="item_id"
+                  value="{{ item.id }}"
+                /><select name="role" aria-label="Role for {{ item.username }}">
+                  {% for value,label in role_choices %}
+                  <option
+                    value="{{ value }}"
+                    {%
+                    if
+                    value=""
+                    ="item.role"
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    {{ label }}
+                  </option>
+                  {% endfor %}</select
+                ><button class="button button-outline" type="submit">
+                  Save
+                </button>
+              </form>
+            </div>
+            {% else %}<span class="subtle">You</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="table-empty" colspan="5">No accounts found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif section == 'posts' %}
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">Publication control</p>
+      <h2>Stories</h2>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Story</th>
+          <th>Writer</th>
+          <th>Topic</th>
+          <th>Status</th>
+          <th>Reach</th>
+          <th>Controls</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            <a class="table-title" href="{% url 'post_detail' item.slug %}"
+              >{{ item.title }}</a
+            ><small>{{ item.created_at|date:'M j, Y'|default:'—' }}</small>
+          </td>
+          <td>{{ item.author.username|default:'—' }}</td>
+          <td>{{ item.category.name|default:'—' }}</td>
+          <td>
+            <span class="status-pill status-{{ item.status }}"
+              >{{ item.get_status_display }}</span
+            >{% if not item.is_visible %}<span class="status-pill status-hidden"
+              >Hidden</span
+            >{% endif %}
+          </td>
+          <td>{{ item.views }} reads · {{ item.likes }} likes</td>
+          <td>
+            <div class="table-actions">
+              {% for action,label in post_actions %}
+              <form method="post">
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="action"
+                  value="{{ action }}"
+                /><input
+                  type="hidden"
+                  name="item_id"
+                  value="{{ item.id }}"
+                /><button class="button button-outline" type="submit">
+                  {{ label }}
+                </button>
+              </form>
+              {% endfor %}<a
+                class="text-link"
+                href="{% url 'edit_post' item.id %}"
+                >Edit ↗</a
+              >
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="table-empty" colspan="6">No stories found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif section == 'comments' %}
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">Community care</p>
+      <h2>Comments</h2>
+    </div>
+  </div>
+  <div class="moderation-list">
+    {% for item in items %}
+    <article class="moderation-item">
+      <div class="response-content">
+        <div class="comment-meta">
+          <strong>{{ item.user.username }}</strong
+          ><time>{{ item.created_at|date:'M j, Y · g:i a' }}</time>
+        </div>
+        <a
+          class="response-post"
+          href="{% url 'post_detail' item.post.slug %}#comments"
+          >On “{{ item.post.title }}”</a
+        >
+        <p>{{ item.body|linebreaksbr }}</p>
+      </div>
+      <div class="table-actions">
+        <span
+          class="status-pill {% if item.is_visible %}status-published{% else %}status-hidden{% endif %}"
+          >{% if item.is_visible %}Visible{% else %}Hidden{% endif %}</span
+        >
+        <form method="post">
+          {% csrf_token %}<input
+            type="hidden"
+            name="action"
+            value="toggle_visibility"
+          /><input type="hidden" name="item_id" value="{{ item.id }}" /><button
+            class="button button-outline"
+            type="submit"
+          >
+            {% if item.is_visible %}Hide{% else %}Restore{% endif %}
+          </button>
+        </form>
+      </div>
+    </article>
+    {% empty %}
+    <p class="subtle">No comments to review.</p>
+    {% endfor %}
+  </div>
+  {% elif section == 'inbox' %}
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">Messages from readers</p>
+      <h2>Contact inbox</h2>
+    </div>
+  </div>
+  <div class="moderation-list">
+    {% for item in items %}
+    <article class="inbox-item">
+      <div class="response-content">
+        <div class="comment-meta">
+          <strong>{{ item.subject }}</strong
+          ><time>{{ item.submitted_at|date:'M j, Y · g:i a' }}</time>
+        </div>
+        <p class="inbox-sender">
+          {{ item.sender_name }} ·
+          <a href="mailto:{{ item.sender_email }}">{{ item.sender_email }}</a>
+        </p>
+        <p>{{ item.message|linebreaksbr }}</p>
+      </div>
+      <form method="post">
+        {% csrf_token %}<input
+          type="hidden"
+          name="action"
+          value="toggle_resolved"
+        /><input type="hidden" name="item_id" value="{{ item.id }}" /><button
+          class="button {% if item.is_resolved %}button-outline{% else %}button-coral{% endif %}"
+          type="submit"
+        >
+          {% if item.is_resolved %}Reopen{% else %}Mark resolved{% endif %}
+        </button>
+      </form>
+    </article>
+    {% empty %}
+    <p class="subtle">No messages yet.</p>
+    {% endfor %}
+  </div>
+  {% elif section == 'logins' %}
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">Account security</p>
+      <h2>Sign-in history</h2>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Email</th>
+          <th>Date and time</th>
+          <th>IP address</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.user.username }}</td>
+          <td>{{ item.user.email }}</td>
+          <td>{{ item.login_time|date:'M j, Y · g:i a' }}</td>
+          <td>{{ item.ip_address|default:'—' }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="table-empty" colspan="4">No sign-ins recorded.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif section == 'categories' %}
+  <div class="category-layout">
+    <div>
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Organize discovery</p>
+          <h2>Topics</h2>
+        </div>
+      </div>
+      <div class="category-list">
+        {% for item in items %}
+        <div>
+          <span>{{ item.name }}</span
+          ><span class="subtle">{{ item.posts.count }} stories</span>
+        </div>
+        {% empty %}
+        <p class="subtle">No topics yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <form method="post" class="category-add-form">
+      {% csrf_token %}<input type="hidden" name="action" value="add_category" />
+      <p class="eyebrow">Add a topic</p>
+      <div class="form-field">
+        <label for="id_name">Topic name</label>{{ category_form.name }}
+      </div>
+      <button class="button button-dark" type="submit">
+        Add topic <span aria-hidden="true">＋</span>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

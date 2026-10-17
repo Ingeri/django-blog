@@ -1,0 +1,47 @@
+{% extends 'blogApp/base.html' %} {% block title %}Notifications — Fieldnotes{%
+endblock %} {% block content %}
+<section class="dashboard-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Your activity</p>
+      <h1>Notifications</h1>
+    </div>
+    <span class="feed-count">{{ unread_count }} unread</span>
+  </div>
+  <div class="notification-list">
+    {% for item in notifications %}
+    <article
+      class="notification-item {% if not item.is_read %}notification-unread{% endif %}"
+    >
+      <span class="notification-dot"></span>
+      <div class="notification-copy">
+        <h2>{{ item.title|default:'Update' }}</h2>
+        <p>{{ item.content }}</p>
+        <time>{{ item.created_at|date:'M j, Y · g:i a' }}</time>
+      </div>
+      <div class="notification-actions">
+        {% if item.link %}<a class="text-link" href="{{ item.link }}"
+          >Open <span aria-hidden="true">↗</span></a
+        >{% endif %}{% if not item.is_read %}
+        <form method="post">
+          {% csrf_token %}<input
+            type="hidden"
+            name="notification_id"
+            value="{{ item.id }}"
+          /><button class="button button-outline" type="submit">
+            Mark read
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="empty-state">
+      <span class="empty-symbol">✳</span>
+      <h3>All caught up</h3>
+      <p>When there is news for you, it will show up here.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

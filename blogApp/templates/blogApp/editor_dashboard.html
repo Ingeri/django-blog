@@ -1,0 +1,125 @@
+{% extends 'blogApp/base.html' %} {% block title %}Writer studio — Fieldnotes{%
+endblock %} {% block content %}
+<section class="dashboard-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Your workbench</p>
+      <h1>Writer studio</h1>
+      <p class="page-subtitle">
+        Shape your next idea, check in with your readers, and see what is
+        resonating.
+      </p>
+    </div>
+    <a class="button button-dark" href="{% url 'new_post' %}"
+      >New story <span aria-hidden="true">＋</span></a
+    >
+  </div>
+  <div class="stat-row">
+    <div class="stat-block">
+      <span>Your stories</span><strong>{{ post_count }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Following your work</span><strong>{{ follower_count }}</strong>
+    </div>
+    <div class="stat-block">
+      <span>Recent responses</span><strong>{{ comments|length }}</strong>
+    </div>
+  </div>
+  <section class="dashboard-section">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">The archive</p>
+        <h2>Your stories</h2>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Story</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Reads</th>
+            <th>Appreciations</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in posts %}
+          <tr>
+            <td>
+              <a class="table-title" href="{% url 'post_detail' post.slug %}"
+                >{{ post.title }}</a
+              ><small>{{ post.updated_at|date:'M j, Y' }}</small>
+            </td>
+            <td>{{ post.category.name|default:'—' }}</td>
+            <td>
+              <span class="status-pill status-{{ post.status }}"
+                >{{ post.get_status_display }}</span
+              >{% if not post.is_visible %}<span
+                class="status-pill status-hidden"
+                >Hidden</span
+              >{% endif %}
+            </td>
+            <td>{{ post.views }}</td>
+            <td>{{ post.likes }}</td>
+            <td>
+              <a class="text-link" href="{% url 'edit_post' post.id %}"
+                >Edit <span aria-hidden="true">↗</span></a
+              >
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td class="table-empty" colspan="6">
+              Your first story is waiting to be written.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="dashboard-section">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">From your readers</p>
+        <h2>Recent responses</h2>
+      </div>
+    </div>
+    <div class="response-list">
+      {% for comment in comments %}
+      <article class="response-item">
+        <span class="author-stamp small-stamp"
+          >{{ comment.user.username|first|upper }}</span
+        >
+        <div class="response-content">
+          <div class="comment-meta">
+            <strong>{{ comment.user.username }}</strong
+            ><time>{{ comment.created_at|date:'M j, Y' }}</time>
+          </div>
+          <a
+            class="response-post"
+            href="{% url 'post_detail' comment.post.slug %}#comments"
+            >On “{{ comment.post.title }}”</a
+          >
+          <p>{{ comment.body|truncatewords:35 }}</p>
+        </div>
+        <form
+          method="post"
+          action="{% url 'moderate_editor_comment' comment.id %}"
+        >
+          {% csrf_token %}<button class="button button-outline" type="submit">
+            {% if comment.is_visible %}Hide{% else %}Restore{% endif %}
+          </button>
+        </form>
+      </article>
+      {% empty %}
+      <p class="subtle">
+        When readers respond to your stories, you will see it here.
+      </p>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

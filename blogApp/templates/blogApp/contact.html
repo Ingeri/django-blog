@@ -1,0 +1,29 @@
+{% extends 'blogApp/base.html' %} {% block title %}Contact — Fieldnotes{%
+endblock %} {% block content %}
+<section class="contact-layout">
+  <div class="contact-copy">
+    <p class="eyebrow">A note to the team</p>
+    <h1>Let's keep<br /><em>in touch.</em></h1>
+    <p>
+      Questions, ideas, feedback, or a story you think belongs here? We read
+      every message.
+    </p>
+    <div class="contact-aside">
+      <span class="aside-rule"></span
+      ><span>Thoughtful things start with a conversation.</span>
+    </div>
+  </div>
+  <form method="post" class="contact-form">
+    {% csrf_token %}{% for field in form %}
+    <div class="form-field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field
+      }}{% for error in field.errors %}<span class="field-error"
+        >{{ error }}</span
+      >{% endfor %}
+    </div>
+    {% endfor %}<button class="button button-dark" type="submit">
+      Send your message <span aria-hidden="true">↗</span>
+    </button>
+  </form>
+</section>
+{% endblock %}

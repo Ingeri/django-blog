@@ -1,0 +1,111 @@
+{% extends 'blogApp/base.html' %}
+{% block title %}{{ heading }} — Fieldnotes{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-art">
+    <p class="eyebrow">A little space to think</p>
+    <blockquote>
+      “The most valuable thing you can make is a connection.”
+    </blockquote>
+    <span class="auth-art-caption">NOTES ARE BETTER SHARED</span>
+  </div>
+  <div class="auth-panel">
+    <p class="eyebrow">
+      {% if signup %}Start here{% else %}Your reading room awaits{% endif %}
+    </p>
+    <h1>{{ heading }}</h1>
+    <p class="auth-subtitle">
+      {% if signup %}Create a reader account to follow writers and join the
+      conversation.{% else %}Pick up where you left off.{% endif %}
+    </p>
+    {% if error %}
+    <div class="form-error">{{ error }}</div>
+    {% endif %}
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      <input
+        type="hidden"
+        name="next"
+        value="{{ request.GET.next }}"
+      />
+      {% if form.non_field_errors %}
+      <div class="form-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+      {% if signup %}
+      <div class="form-field">
+        <label for="id_username">Your name</label
+        />
+        <input
+          id="id_username"
+          name="username"
+          maxlength="200"
+          value="{{ form.username.value|default:'' }}"
+          autocomplete="name"
+          required
+        />
+        {% for error in form.username.errors %}<span class="field-error"
+          >{{ error }}</span
+        >{% endfor %}
+      </div>
+      {% endif %}
+      <div class="form-field">
+        <label for="id_email">Email address</label
+        ><input
+          id="id_email"
+          type="email"
+          name="email"
+          maxlength="250"
+          value="{% if signup %}{{ form.email.value|default:'' }}{% else %}{{ email|default:'' }}{% endif %}"
+          autocomplete="email"
+          required
+        />
+        {% if form.email.errors %}
+        {% for error in form.email.errors %}<span
+          class="field-error"
+          >{{ error }}</span
+        >{% endfor %}
+        {% endif %}
+      </div>
+      <div class="form-field">
+        <label for="id_password">Password</label
+        ><input
+          id="id_password"
+          type="password"
+          name="password"
+          autocomplete="{% if signup %}new-password{% else %}current-password{% endif %}"
+          required
+        />
+        {% if form.password.errors %}
+        {% for error in form.password.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+        {% endif %}
+      </div>
+      {% if signup %}
+      <div class="form-field">
+        <label for="id_password_confirm">Confirm password</label
+        ><input
+          id="id_password_confirm"
+          type="password"
+          name="password_confirm"
+          autocomplete="new-password"
+          required
+        />
+        {% for error in form.password_confirm.errors %}<span
+          class="field-error"
+          >{{ error }}</span
+        >{% endfor %}
+      </div>
+      {% endif %}
+      <button class="button button-dark button-wide" type="submit">
+        {{ submit_label }} <span aria-hidden="true">↗</span>
+      </button>
+    </form>
+    <p class="auth-switch">
+      {% if signup %}Already part of the community?
+      <a href="{% url 'login' %}">Sign in</a>{% else %}New to Fieldnotes?
+      <a href="{% url 'register' %}">Create an account</a>{% endif %}
+    </p>
+  </div>
+</section>
+{% endblock %}

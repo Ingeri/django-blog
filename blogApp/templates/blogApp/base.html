@@ -1,0 +1,70 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Thoughtful stories from a curious community."
+    />
+    <title>{% block title %}Fieldnotes{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'blogApp/site.css' %}" />
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="{% url 'home' %}"
+        ><span class="brand-mark">F</span
+        ><span>fieldnotes<span class="brand-period">.</span></span></a
+      >
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="{% url 'home' %}">Explore</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'notifications' %}">Notifications</a>
+        {% if user.role == 'editor' or user.role == 'admin' %}<a
+          href="{% url 'editor_dashboard' %}"
+          >Studio</a
+        >{% endif %} {% if user.role == 'admin' %}<a href="{% url 'manage' %}"
+          >Manage</a
+        >{% endif %}
+        <form class="nav-logout" method="post" action="{% url 'logout' %}">
+          {% csrf_token %}<button class="nav-link-button" type="submit">
+            Sign out
+          </button>
+        </form>
+        {% else %}
+        <a href="{% url 'login' %}">Sign in</a>
+        <a class="nav-join" href="{% url 'register' %}"
+          >Join us <span aria-hidden="true">↗</span></a
+        >
+        {% endif %}
+      </nav>
+    </header>
+    {% if messages %}
+    <div class="message-stack">
+      {% for message in messages %}
+      <div class="flash flash-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <main>{% block content %}{% endblock %}</main>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="{% url 'home' %}"
+        ><span class="brand-mark">F</span
+        ><span>fieldnotes<span class="brand-period">.</span></span></a
+      >
+      <span>Good ideas deserve a place to grow.</span>
+      <a href="{% url 'contact' %}"
+        >Get in touch <span aria-hidden="true">↗</span></a
+      >
+    </footer>
+  </body>
+</html>

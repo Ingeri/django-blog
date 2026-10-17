@@ -1,0 +1,101 @@
+{% extends 'blogApp/base.html' %} {% block title %}{{ post.title }} —
+Fieldnotes{% endblock %} {% block content %}
+<article class="article-page">
+  <a class="back-link" href="{% url 'home' %}">← Back to stories</a>
+  <header class="article-header">
+    <p class="eyebrow">
+      {% if post.category %}{{ post.category.name }}{% else %}Fieldnotes{% endif
+      %} <span>·</span> {{ post.created_at|date:'F j, Y'|default:'Recently' }}
+    </p>
+    <h1>{{ post.title }}</h1>
+    <p class="article-deck">{{ post.description }}</p>
+    <div class="article-byline">
+      <span class="author-stamp"
+        >{{ post.author.username|first|upper|default:'F' }}</span
+      ><span
+        >Written by
+        <strong
+          >{% if post.author %}{{ post.author.username }}{% else %}Fieldnotes
+          editor{% endif %}</strong
+        ><small
+          >{{ post.views }} reads <span>·</span> {{ post.likes }}
+          appreciations</small
+        ></span
+      >
+      {% if post.author and post.author.role == 'editor' and
+      user.is_authenticated and user.pk != post.author_id %}
+      <form method="post" action="{% url 'toggle_follow' post.author_id %}">
+        {% csrf_token %}<input
+          type="hidden"
+          name="next"
+          value="{{ request.path }}"
+        /><button class="button button-outline" type="submit">
+          {% if followed %}Following{% else %}Follow writer{% endif %}
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </header>
+  <div class="article-content">{{ post.body|linebreaks }}</div>
+  <div class="article-actions">
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'toggle_like' post.slug %}">
+      {% csrf_token %}<button
+        class="button {% if liked %}button-coral{% else %}button-outline{% endif %}"
+        type="submit"
+      >
+        {% if liked %}♥ Appreciated{% else %}♡ Appreciate this story{% endif %}
+      </button>
+    </form>
+    {% else %}<a
+      class="button button-outline"
+      href="{% url 'login' %}?next={{ request.path|urlencode }}"
+      >Sign in to appreciate</a
+    >{% endif %}<span class="subtle">{{ comments|length }} responses</span>
+  </div>
+  <section class="comments-section" id="comments">
+    <div class="feed-heading">
+      <div>
+        <p class="eyebrow">Keep it thoughtful</p>
+        <h2>The conversation</h2>
+      </div>
+    </div>
+    {% if user.is_authenticated %}
+    <form
+      class="comment-form"
+      method="post"
+      action="{% url 'add_comment' post.slug %}"
+    >
+      {% csrf_token %}{{ comment_form.body }}{% for error in
+      comment_form.body.errors %}<span class="field-error">{{ error }}</span>{%
+      endfor %}<button class="button button-dark" type="submit">
+        Share response <span aria-hidden="true">↗</span>
+      </button>
+    </form>
+    {% else %}
+    <p class="subtle sign-in-prompt">
+      <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Sign in</a>
+      to join the conversation.
+    </p>
+    {% endif %}
+    <div class="comment-list">
+      {% for comment in comments %}
+      <article class="comment-item">
+        <span class="author-stamp small-stamp"
+          >{{ comment.user.username|first|upper }}</span
+        >
+        <div>
+          <div class="comment-meta">
+            <strong>{{ comment.user.username }}</strong
+            ><time>{{ comment.created_at|date:'M j, Y · g:i a' }}</time>
+          </div>
+          <p>{{ comment.body|linebreaksbr }}</p>
+        </div>
+      </article>
+      {% empty %}
+      <p class="subtle">No responses yet. Start the conversation.</p>
+      {% endfor %}
+    </div>
+  </section>
+</article>
+{% endblock %}
