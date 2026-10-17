@@ -1,5 +1,4 @@
-{% extends 'blogApp/base.html' %} {% block title %}{% if post %}Edit story{%
-else %}New story{% endif %} — Fieldnotes{% endblock %} {% block content %}
+{% extends 'blogApp/base.html' %} {% block content %}
 <section class="form-page">
   <a class="back-link" href="{% url 'editor_dashboard' %}">← Back to studio</a>
   <div class="form-page-heading">
@@ -12,16 +11,40 @@ else %}New story{% endif %} — Fieldnotes{% endblock %} {% block content %}
     </p>
   </div>
   <form method="post" class="story-editor-form">
-    {% csrf_token %}{% if form.non_field_errors %}
+    {% csrf_token %} {% if form.non_field_errors %}
     <div class="form-error">{{ form.non_field_errors }}</div>
-    {% endif %}{% for field in form %}
-    <div class="form-field {% if field.name == 'body' %}body-field{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field
-      }}{% for error in field.errors %}<span class="field-error"
-        >{{ error }}</span
-      >{% endfor %}
+    {% endif %}
+    <div class="form-field">
+      <label for="{{ form.title.id_for_label }}">Title</label>
+      {{ form.title }} {% if form.title.errors %}<span class="field-error"
+        >{{ form.title.errors }}</span
+      >{% endif %}
     </div>
-    {% endfor %}
+    <div class="form-field">
+      <label for="{{ form.description.id_for_label }}">Description</label>
+      {{ form.description }} {% if form.description.errors %}<span
+        class="field-error"
+        >{{ form.description.errors }}</span
+      >{% endif %}
+    </div>
+    <div class="form-field body-field">
+      <label for="{{ form.body.id_for_label }}">Body</label>
+      {{ form.body }} {% if form.body.errors %}<span class="field-error"
+        >{{ form.body.errors }}</span
+      >{% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.category.id_for_label }}">Category</label>
+      {{ form.category }} {% if form.category.errors %}<span class="field-error"
+        >{{ form.category.errors }}</span
+      >{% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.status.id_for_label }}">Status</label>
+      {{ form.status }} {% if form.status.errors %}<span class="field-error"
+        >{{ form.status.errors }}</span
+      >{% endif %}
+    </div>
     <div class="form-actions">
       <a class="text-link" href="{% url 'editor_dashboard' %}">Cancel</a
       ><button class="button button-dark" type="submit">
