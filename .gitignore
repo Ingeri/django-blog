@@ -1,0 +1,40 @@
+# --- Python & Virtual Environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+blog/
+env/
+venv/
+ENV/
+env.bak
+venv.bak
+
+# --- uv ---
+.uv/
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Database ---
+*.sqlite3
+*.db
+*.db-journal
+
+# --- Django Specific ---
+media/
+staticfiles/
+*.log
+
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS Generated ---
+.DS_Store
+Thumbs.db
