@@ -14,14 +14,34 @@ endblock %} {% block content %}
     </div>
   </div>
   <form method="post" class="contact-form">
-    {% csrf_token %}{% for field in form %}
+    {% csrf_token %}
     <div class="form-field">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field
-      }}{% for error in field.errors %}<span class="field-error"
-        >{{ error }}</span
-      >{% endfor %}
+      <label for="{{ form.sender_name.id_for_label }}">Sender name</label>
+      {{ form.sender_name }} {% if form.sender_name.errors %}<span
+        class="field-error"
+        >{{ form.sender_name.errors }}</span
+      >{% endif %}
     </div>
-    {% endfor %}<button class="button button-dark" type="submit">
+    <div class="form-field">
+      <label for="{{ form.sender_email.id_for_label }}">Sender email</label>
+      {{ form.sender_email }} {% if form.sender_email.errors %}<span
+        class="field-error"
+        >{{ form.sender_email.errors }}</span
+      >{% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.subject.id_for_label }}">Subject</label>
+      {{ form.subject }} {% if form.subject.errors %}<span class="field-error"
+        >{{ form.subject.errors }}</span
+      >{% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.message.id_for_label }}">Message</label>
+      {{ form.message }} {% if form.message.errors %}<span class="field-error"
+        >{{ form.message.errors }}</span
+      >{% endif %}
+    </div>
+    <button class="button button-dark" type="submit">
       Send your message <span aria-hidden="true">↗</span>
     </button>
   </form>
