@@ -1,5 +1,6 @@
-{% extends 'blogApp/base.html' %} {% block title %}Contact — Fieldnotes{%
-endblock %} {% block content %}
+{% extends 'blogApp/base.html' %} {# Keep Django block tags separate from
+generic HTML formatting. #} {% block title %}Contact — Fieldnotes{% endblock %}
+{# Main contact page. #} {% block content %}
 <section class="contact-layout">
   <div class="contact-copy">
     <p class="eyebrow">A note to the team</p>
