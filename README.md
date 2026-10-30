@@ -1,38 +1,28 @@
 # Fieldnotes Django blog
 
-A Django publishing site backed by the tables in `db/blog_db.sql`. The application maps Django models onto the existing MySQL tables, so the imported posts, accounts, comments, likes, follows, notifications, contact messages, and sign-in history remain the source of truth.
+A Django publishing site backed by the tables in `db/blog_db.sql`. The app uses SQLite and imports the existing MySQL phpMyAdmin dump into `db/blog.sqlite3`.
 
-## Set up MySQL
+## Set up SQLite
 
-Create the database and import the dump:
-
-```sql
-CREATE DATABASE blog_db CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-```
+Create the SQLite database from the included dump:
 
 ```sh
-mysql -u your_mysql_user -p blog_db < db/blog_db.sql
+blog/bin/python db/import_sqlite.py
 ```
 
-Install dependencies and configure the connection. Copy `.env.example` to `.env` and replace the database user and password with your MySQL credentials:
+The importer preserves the existing users, posts, categories, comments, likes, follows, notifications, contact messages, and sign-in history. It adds those tables to the SQLite file without replacing existing Django migration tables. It refuses to run again if the dump's tables are already present.
+
+Install dependencies, apply Django's built-in migrations, and start the site:
 
 ```sh
-uv pip install -r requirements.txt
-cp .env.example .env
+blog/bin/python -m pip install -r requirements.txt
+blog/bin/python manage.py migrate
+blog/bin/python manage.py runserver
 ```
 
-Apply Django's built-in session and authentication migrations, then start the site:
-
-```sh
-uv run --env-file .env python manage.py migrate
-uv run --env-file .env python manage.py runserver
-```
-
-Always pass `--env-file .env` when using `uv run`; otherwise Django defaults to the local SQLite file. The blog models map to existing SQL tables and are intentionally unmanaged, so migrations do not create `post`, `users`, or the other tables in SQLite. Import `db/blog_db.sql` into MySQL before starting the site.
+The database defaults to `db/blog.sqlite3`; set `DB_NAME` to use another SQLite file. The blog models map to the imported tables and are intentionally unmanaged, so Django migrations create its authentication and session tables while `db/import_sqlite.py` imports the blog data.
 
 The application uses the `users` table for authentication. Existing `pbkdf2$...` hashes are verified by a compatibility hasher and upgraded to Django's current PBKDF2 format when the user next signs in. New signups are readers. An administrator can assign the `editor` role in **Manage → People**; editors can draft and publish stories in **Studio**.
-
-For a blank SQLite-only development database, leave `DB_ENGINE` unset and the project uses `db.sqlite3`. The exported blog content is available only after importing the SQL dump into MySQL.
 
 ## Roles
 
@@ -44,4 +34,4 @@ Role checks are enforced in Django views. New public registrations can only crea
 
 ## Configuration
 
-`DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, and `DJANGO_ALLOWED_HOSTS` configure Django. Set `DB_ENGINE=mysql`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_PORT` for the imported MySQL database. Do not commit `.env` or production credentials. Use `.env.example` as a starting point.
+`DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, and `DJANGO_ALLOWED_HOSTS` configure Django. `DB_NAME` optionally selects a SQLite database path. Do not commit `.env` or production credentials. Use `.env.example` as a starting point.
